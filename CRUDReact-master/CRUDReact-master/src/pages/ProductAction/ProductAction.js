@@ -1,10 +1,8 @@
 import React, {Component} from 'react';
 
 //callapi
-
+import axios from "axios";
 import { Link } from 'react-router-dom';
-
-
 //action
 import {AddProductRequest, GetDetailProductRequest, UpdateProductRequest} from "./../../actions/index";
 
@@ -16,12 +14,12 @@ class ProductAction extends Component {
     this.state={
       id: "",
       nameBook: "",
-      img:"",
+      img:null,
       content:"",
       price: "",
       sale: "",
-      status:"",
-      deleted:""
+      status:false,
+      deleted:false
     }
   }
   componentDidMount()
@@ -54,47 +52,54 @@ class ProductAction extends Component {
   onChange =(e)=>{
     var target = e.target;
     var name = target.name;
-   // var value = target.type=="checkbox" ? target.checked : target.value;
-   var value="";
-   if(target.type==="checkbox")
-    {
-      value=target.checked;
-    }
-    else if(target.type==="file")
-    {
-      value=target.files[0].name;
-    }
-    else
-    {
-      value=  target.value;
-    }
+    var value = target.type=="checkbox" ? target.checked : target.value;
     this.setState({
       [name]: value
     });
   }
 
+  onFileChange = event => { 
+     
+    // Update the state 
+    this.setState({ img: event.target.files[0] }); 
+   
+  }; 
   
   onSave =(e)=>{
     
     e.preventDefault();
     var {id,nameBook, img, content, price, sale, deleted, status} = this.state;
       var {history} = this.props;
-      console.log(nameBook + "-" + img + "-" +content+ "-" + price + "-" +sale+ "-" + deleted + "-" +status);
+     // console.log(nameBook + "-" + img + "-" +content+ "-" + price + "-" +sale+ "-" + deleted + "-" +status);
       if(id) //update
       {
-         
-          var product = new FormData();
+        var productimg = new FormData();
+        productimg.append('file',img)
+        const config = {
+        headers: {
+            'content-type': 'multipart/form-data'
+        }
+    }
+         axios.post("https://localhost:44348/api/Books/UploadImg",productimg, config)
+         .then(res=>{
+           var product = new FormData()
           product.set('nameBook',nameBook);
-          product.set('img',img);
           product.set('content',content);
           product.set('price',price);
           product.set('sale',sale);
           product.set('status',status===true?"true": "false");
-          product.set('deleted',deleted===true?"true": "false");
-         this.props._UpdateProduct(id,product);
-         console.log("update sucess");
-         history.goBack();
-       
+          product.set('deleted',deleted===true?"false": "true");
+          product.set('img',res.data);
+         this.props._UpdateProduct(id,productimg,product);
+         console.log(res.data);
+       //  history.goBack();
+         })
+         .catch(err=>{
+           console.log(err);
+         });
+
+         
+        
       }
       else //insert
       {
@@ -121,22 +126,21 @@ class ProductAction extends Component {
                      onChange={this.onChange}
                    />
                 </div>
-                <div className="form-group">
+                {/* <div className="form-group">
                   <label>Hình:</label>
                   <input type="text" 
                   className="form-control"
-                   name="img"
+                    name="img"
                     value={img}
-                     onChange={this.onChange}
+                    onChange={this.onChange}
                    />
-                </div>
+                </div> */}
                 <div className="form-group">
                   <label>Chọn Hình:</label>
-                  <input type="file" 
-                  className="form-control"
-                   name="img"
+                    <input type="file" 
+                    className="form-control"
                   
-                     onChange={this.onChange}
+                     onChange={this.onFileChange}
                    />
                 </div>
                 <div className="form-group">
