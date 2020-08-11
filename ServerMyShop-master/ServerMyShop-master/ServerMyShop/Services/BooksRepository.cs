@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -35,8 +36,10 @@ namespace ServerMyShop.Services
         public void EditBook(int? id, Books book)
         {
             var bookEdit = db.Books.SingleOrDefault(n => n.Id == id);
-            if(bookEdit!= null)
+           
+            if (bookEdit!= null)
             {
+                
                 bookEdit.NameBook = book.NameBook;
                 bookEdit.Price = book.Price;
                 bookEdit.Img = book.Img;

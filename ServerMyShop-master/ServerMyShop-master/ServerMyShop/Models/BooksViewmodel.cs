@@ -1,16 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
-
 namespace ServerMyShop.Models
 {
-    public partial class Books
+    public class BooksViewmodel
     {
-        public Books()
-        {
-            Billdetails = new HashSet<Billdetails>();
-        }
-
         public int Id { get; set; }
         public string NameBook { get; set; }
         public int? Booktype { get; set; }
@@ -22,8 +16,9 @@ namespace ServerMyShop.Models
         public int? Sale { get; set; }
         public string Status { get; set; }
         public string Deleted { get; set; }
-        public string Img { get; set; }
-        public Books(int id, string name, string content, int price, int quantity, int sale, string status, string deleted, string img)
+        public IFormFile Img { get; set; }
+
+        public BooksViewmodel(int id, string name, string content, int price, int quantity, int sale, string status, string deleted,IFormFile img)
         {
             this.Id = id;
             this.NameBook = name;
@@ -35,15 +30,5 @@ namespace ServerMyShop.Models
             this.Deleted = deleted;
             this.Img = img;
         }
-
-        public Books(string img)
-        {
-            this.Img = img;
-        }
-
-        public virtual Booktypes BooktypeNavigation { get; set; }
-        public virtual Providers ProviderNavigation { get; set; }
-        public virtual Publishers PublisherNavigation { get; set; }
-        public virtual ICollection<Billdetails> Billdetails { get; set; }
     }
 }

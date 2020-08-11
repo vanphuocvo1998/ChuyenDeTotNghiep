@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using ServerMyShop.Models;
 using ServerMyShop.Services;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.Hosting;
+using System.Threading.Tasks;
+
 namespace ServerMyShop.Controllers
 {
     [Microsoft.AspNetCore.Cors.EnableCors("CorsApi")]
@@ -15,6 +17,45 @@ namespace ServerMyShop.Controllers
     public class BooksController : ControllerBase
     {
         BooksRepository _BooksRepository = new BooksRepository();
+
+        public static IWebHostEnvironment _environment;
+        public BooksController(IWebHostEnvironment environment)
+        {
+            _environment = environment;
+        }
+
+        public class BookImage
+        {
+            public IFormFile Img { get; set; }
+        }
+
+        [HttpPost("UploadImg")]
+        public string UploadImg([FromForm]BookImage model)
+        {
+            try
+            {
+                if (model.Img.Length > 0)
+                {
+                    if (!Directory.Exists(_environment.WebRootPath + "\\Images\\"))
+                    {
+                        Directory.CreateDirectory(_environment.WebRootPath + "\\Images\\");
+                    }
+                    using (FileStream fs = System.IO.File.Create(_environment.WebRootPath + "\\Images\\" + model.Img.FileName))
+                    {
+                        model.Img.CopyTo(fs);
+                        fs.Flush();
+                        return model.Img.FileName;
+                    }
+                }
+                else
+                    return "Upload failed";
+            }
+            catch(Exception e)
+            {
+                return e.Message.ToString();
+            }
+            
+        }
 
         [HttpGet("GetAll")]
         public IEnumerable<Books> GetAll()
@@ -42,11 +83,12 @@ namespace ServerMyShop.Controllers
         }
 
         [HttpPut("Edit/{id:int}")]
-        public Books Edit(int ?id, [FromForm]Books item)
+        public Books Edit(int ?id, [FromForm]BookImage img, [FromForm]Books item)
         {
-         
-            _BooksRepository.EditBook(id, item);
-            return item;
+            string nameImg = UploadImg(img);
+            var book = new Books(item.Id, item.NameBook, item.Content, Convert.ToInt32(item.Price), Convert.ToInt32(item.Quantity), Convert.ToInt32(item.Sale), item.Status, item.Deleted, nameImg) ;
+            _BooksRepository.EditBook(id, book);
+            return _BooksRepository.GetById(id);
         }
 
         [HttpDelete("Delete/{id:int}")]
